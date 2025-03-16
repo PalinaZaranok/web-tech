@@ -1,0 +1,5 @@
+<img src="${movie.poster}" class="movie-poster" alt="${movie.title}">
+    <div class="movie-info">
+        <h3 class="movie-title">${movie.title}</h3>
+        <div class="movie-rating">★ ${movie.rating}</div>
+    </div>
