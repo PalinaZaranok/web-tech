@@ -11,6 +11,8 @@ class TemplateFacade
             $template = str_replace($placeholder, this->escape($value), $template);
         }
 
+
+
         return $template;
     }
 }
