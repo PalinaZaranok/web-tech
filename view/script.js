@@ -2,25 +2,25 @@ const movies = [
     {
         title: "Чёрная пантера",
         rating: 6.7,
-        poster: "./image/panther.webp",
+        poster: "view/image/panther.webp",
         genre: "Боевик, фантастика"
     },
     {
         title: "Космическая одиссея",
         rating: 9.1,
-        poster: "./image/odiseya.webp",
+        poster: "view/image/odiseya.webp",
         genre: "Фантастика"
     },
     {
         title: "Форрест Гамп",
         rating: 8.9,
-        poster: "./image/forrest.webp",
+        poster: "view/image/forrest.webp",
         genre: "Драма"
     },
     {
         title: "Зверополис",
         rating: 8.3,
-        poster: "./image/zootopia.webp",
+        poster: "view/image/zootopia.webp",
         genre: "Мультфильм"
     },
 ];
@@ -33,11 +33,7 @@ function renderMovies(moviesArray) {
         const card = document.createElement('div');
         card.className = 'movie-card';
         card.innerHTML = `
-                    <img src="${movie.poster}" class="movie-poster" alt="${movie.title}">
-                        <div class="movie-info">
-                        <h3 class="movie-title">${movie.title}</h3>
-                        <div class="movie-rating">★ ${movie.rating}</div>
-                        </div>
+                    
                 `;
         container.appendChild(card);
     });
