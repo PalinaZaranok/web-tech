@@ -1,5 +1,6 @@
 <?php
 
+namespace utils;
 class TemplateFacade
 {
     public function render($templatePath, $data = [])
@@ -10,7 +11,6 @@ class TemplateFacade
             $placeholder = '{{' . $key . '}}';
             $template = str_replace($placeholder, this->escape($value), $template);
         }
-
 
 
         return $template;

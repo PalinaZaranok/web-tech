@@ -1,6 +1,10 @@
 <?php
 
-namespace models;
+namespace utils;
+
+use models\GenresController;
+use models\NewController;
+use models\PopularController;
 
 class Router
 {

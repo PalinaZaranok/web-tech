@@ -3,7 +3,7 @@
 namespace models;
 
 use services\NewService;
-use TemplateFacade;
+use utils\TemplateFacade;
 
 class NewController
 {
@@ -11,7 +11,7 @@ class NewController
     {
         $templateFacade = new TemplateFacade();
         $data = ['Новинки', 'Новинка недели', 'с 18 января', 'd9MyW72ELq0', 'Аватар: путь воды'];
-        $templateFacade->renderTemplate('./public/htmlPage.ihtml', $data);
+        $templateFacade->renderTemplate('./view/htmlPage.html', $data);
 
     }
     public function connectToService()

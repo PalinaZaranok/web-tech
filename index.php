@@ -1,10 +1,13 @@
 <?php
 
-use models\Router;
+use utils\Router;
 
-if (isset($_GET['action'])){
-    $action = $_GET['action'];
-}
+require_once __DIR__ . '/view/htmlPage.html';
+require_once __DIR__ . '/public/index.html';
+require_once __DIR__ . '/public/style.css';
+require_once __DIR__ . '/view/script.js';
+require_once __DIR__ . '/TemplateFacade.php';
+require_once __DIR__ . '/app/.';
 
 $action = htmlspecialchars($_GET['action']);
 $allowed_actions = ['new', 'popular', 'genres'];
