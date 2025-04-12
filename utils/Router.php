@@ -2,9 +2,12 @@
 
 namespace utils;
 
-use models\GenresController;
-use models\NewController;
-use models\PopularController;
+require_once 'app/models/AdminController.php';
+
+use \app\models\AdminController;
+use \app\models\GenresController;
+use \app\models\NewController;
+use \app\models\PopularController;
 
 class Router
 {
@@ -12,7 +15,7 @@ class Router
         if ($action == 'new')
         {
             $newController = new NewController();
-            $newController->createHtmlPage();
+            //$newController->createHtmlPage();
         }
         else if ($action == 'popular')
         {
@@ -22,6 +25,11 @@ class Router
         else if ($action == 'genres')
         {
             $genresController = new GenresController();
+        }
+        else if ($action == 'admin')
+        {
+            $adminController = new AdminController();
+            $adminController->handleRequest();
         }
     }
 }

@@ -14,7 +14,7 @@ class MovieBase
         // Реализация создания записи
     }
 
-    public static function find($id) {
+    public static function find(int $id) {
         // Реализация поиска по ID
     }
 

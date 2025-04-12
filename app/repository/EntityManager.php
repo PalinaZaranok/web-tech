@@ -9,7 +9,7 @@ class EntityManager
     private $configPath;
     private $connection;
 
-    private function __construct($configPath)
+    private function __construct(string $configPath)
     {
         $this->configPath = $configPath;
         $this->sqlInit();

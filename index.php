@@ -1,22 +1,20 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 use utils\Router;
 
-require_once __DIR__ . '/view/htmlPage.html';
-require_once __DIR__ . '/public/index.html';
-require_once __DIR__ . '/public/style.css';
-require_once __DIR__ . '/view/script.js';
-require_once __DIR__ . '/TemplateFacade.php';
-require_once __DIR__ . '/app/.';
+require_once __DIR__ .'/public/view/index.html';
+require_once __DIR__ .'/utils/Router.php';
 
-$action = htmlspecialchars($_GET['action']);
-$allowed_actions = ['new', 'popular', 'genres'];
-
-if (!in_array($action, $allowed_actions)) {
-    die("Недопустимое значение параметра action");
+if(isset($_GET['admin'])) {
+    $action = $_GET['admin'];
 }
+//$action = htmlspecialchars($_GET['admin']);
+
 
 $router = new Router();
+$action = 'admin';
 $router->route($action);
 
-?>

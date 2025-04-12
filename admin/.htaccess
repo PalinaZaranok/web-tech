@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Administrator's Area"
+AuthUserFile /etc/nginx/.htpasswd
+Require user

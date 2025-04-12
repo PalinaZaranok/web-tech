@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Manager</title>
+  <link href="adminStyle.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+  <h1>File Manager</h1>
+
+  <div class="breadcrumb">
+    <a href="?dir=<?= urlencode($this->server->getBaseDir()) ?>">root</a> /
+    <?php foreach ($breadcrumbs as $crumb): ?>
+    <a href="?dir=<?= urlencode($crumb['path']) ?>"><?= htmlspecialchars($crumb['name']) ?></a> /
+    <?php endforeach; ?>
+  </div>
+
+  <div class="file-list">
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="upload_file" required>
+      <button type="submit">Upload File</button>
+    </form>
+
+    <form method="post">
+      <input type="text" name="folder_name" placeholder="New folder name" required>
+      <button type="submit" name="create_folder">Create Folder</button>
+    </form>
+
+    <?php foreach ($files as $file): ?>
+    <?php $filePath = $currentDir . '/' . $file; ?>
+    <div class="file-item">
+                    <span class="file-name <?= is_dir($filePath) ? 'folder' : 'file' ?>">
+                        <?= htmlspecialchars($file) ?>
+                    </span>
+      <div class="file-actions">
+        <?php if (!is_dir($filePath)): ?>
+        <a href="?download=<?= urlencode($filePath) ?>">
+          <button>Download</button>
+        </a>
+        <button onclick="editFile('<?= htmlspecialchars($filePath) ?>')">Edit</button>
+        <?php endif; ?>
+        <form method="post">
+          <input type="hidden" name="delete" value="<?= htmlspecialchars($filePath) ?>">
+          <button type="submit">Delete</button>
+        </form>
+        <?php if (is_dir($filePath)): ?>
+        <a href="?dir=<?= urlencode($filePath) ?>">
+          <button>Open</button>
+        </a>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endforeach; ?>
+  </div>
+
+  <div id="editor" style="display: none;">
+    <form method="post">
+      <input type="hidden" name="file_path" id="filePath">
+      <textarea class="editor" name="content" id="fileContent"></textarea>
+      <button type="submit" name="save_file">Save</button>
+      <button type="button" onclick="hideEditor()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
