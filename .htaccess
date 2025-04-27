@@ -1,0 +1,28 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Если проект в подпапке (например http://localhost/myproject/)
+    # Раскомментируйте и укажите правильный путь:
+    # RewriteBase /myproject/
+
+    # Перенаправление всех запросов на index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Заголовки для API
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Блокировка доступа к системным файлам (современный способ)
+<FilesMatch "\.(env|log|htaccess|md|sql|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Настройки PHP
+php_flag display_errors On
+php_value error_reporting E_ALL

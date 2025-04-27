@@ -6,8 +6,13 @@ use services\PopularService;
 
 class PopularController
 {
-    public function connectToService()
+    private POpularService $popularService;
+    public function __construct(PopularService $popularService)
     {
-        $newService = new PopularService();
+        $this->popularService = $popularService;
+    }
+    public function handlePopularPage(): string
+    {
+        return $this->popularService->handlePopularPage();
     }
 }

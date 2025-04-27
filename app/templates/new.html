@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineVerse - Новинки кино</title>
+    <link rel="stylesheet" href="/public/view/style.css">
+</head>
+<body>
+<header class="header">
+</header>
+
+<main class="new-releases">
+    <h1 class="section-title">Новинки кино <span class="new-badge">2024</span></h1>
+
+    <section class="movies-grid" id="newMoviesContainer">
+        @foreach($movies as $movie)
+        <div class="movie-card">
+            <img src="{{ $movie['poster'] }}" alt="{{ $movie['title'] }}" class="movie-poster">
+            <div class="movie-info">
+                <h3 class="movie-title">{{ $movie['title'] }} <span class="new-badge">NEW</span></h3>
+                <div class="movie-rating">★ {{ $movie['rating'] }}</div>
+                <div class="release-date">Дата выхода: {{ $movie['release_date'] }}</div>
+            </div>
+        </div>
+        @endforeach
+    </section>
+</main>
+
+<footer>
+    <div class="fileManager">
+        <button class="admin-btn" id="adminBtn">Admin panel</button>
+    </div>
+</footer>
+
+<script src="/public/view/script.js"></script>
+</body>
+</html>

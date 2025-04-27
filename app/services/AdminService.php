@@ -2,135 +2,206 @@
 
 namespace services;
 
+
+use Exception;
 use utils\TemplateFacade;
 
-function rmdir_recursive($dir): void
-{
-    foreach (scandir($dir) as $file) {
-        if ('.' === $file || '..' === $file) continue;
-        $path = $dir.DIRECTORY_SEPARATOR.$file;
-        is_dir($path) ? rmdir_recursive($path) : unlink($path);
-    }
-    rmdir($dir);
-}
+defined('__ADMIN_FILE_NAME__') or define('__ADMIN_FILE_NAME__', 'admin');
 
 class AdminService
 {
-    private $baseDir;
-    private $allowedUsers;
-    // загрузка, скачивание, предпросмотр, добавление, удаление,
-    // редактирование папок и файлов, переход по ним
-    // . and ..
+    private TemplateFacade $templateFacade;
 
-    public function __construct() {
-        $this->baseDir = realpath(__DIR__.'/public');
+    public function __construct(TemplateFacade $templateFacade)
+    {
+        $this->templateFacade = $templateFacade;
     }
 
-    public function authentication(string $user, string $pass): bool 
-{
-    // Проверка существования файла
-    $file = '/etc/apache2/.htpasswd';
-    if (!file_exists($file)) {
-        throw new Exception("Auth file not found");
-    }
+    /**
+     * @throws Exception
+     */
 
-    // Чтение файла построчно
-    $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    
-    foreach ($lines as $line) {
-        // Разделение логина и хеша
-        if (strpos($line, ':') === false) continue;
-        list($fileUser, $fileHash) = explode(':', $line, 2);
-
-        // Проверка логина и пароля
-        if ($fileUser === $user) {
-            return password_verify($pass, $fileHash) 
-                || ($fileHash === crypt($pass, $fileHash));
+    public function validateCredentials(string $username, string $password): bool
+    {
+        $htpasswdPath = __ADMIN__ . '\.htpasswd';
+        if (!file_exists($htpasswdPath)) {
+            throw new Exception('Файл .htpasswd не найден');
         }
-    }
-    
-    return false;
-}
 
-    public function getBaseDir() {
-        return $this->baseDir;
-    }
-
-    public function getCurrentDir($requestDir) {
-        $currentDir = realpath($this->baseDir . '/' . $requestDir);
-        return (strpos($currentDir, $this->baseDir) === 0) ? $currentDir : $this->baseDir;
-    }
-
-    public function getFiles($dir) {
-        return array_diff(scandir($dir), ['.', '..']);
-    }
-
-    public function createFolder($path, $name) {
-        $cleanName = preg_replace('/[^a-zA-Z0-9_-]/', '', $name);
-        $newPath = $path.'/'.$cleanName;
-        if (!file_exists($newPath)) {
-            mkdir($newPath, 0755);
+        $lines = file($htpasswdPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            list($storedUsername, $storedHash) = explode(':', $line);
+            if ($storedUsername === $username && $password === $storedHash) {
+                return true;
+            }
         }
+
+        return false;
     }
 
-    public function deleteItem($path) {
-        if (strpos(realpath($path), $this->baseDir) !== 0) return false;
+    public function getAllowedDirs(): array
+    {
+        return [
+            realpath(__PUBLIC__),
+            realpath(__VIEW__),
+            realpath(__VIEW__ . '\image')
+        ];
+    }
 
-        if (is_dir($path)) {
-            $this->deleteDirectory($path);
-        } else {
-            unlink($path);
+    /**
+     * @throws Exception
+     */
+    public function getAllowedFiles(?string $currentDir = null): array {
+
+        if ($currentDir === null) {
+            return $this->getBaseDirs();
         }
-        return true;
-    }
 
-    private function deleteDirectory($dir) {
-        $files = array_diff(scandir($dir), ['.', '..']);
-        foreach ($files as $file) {
-            $path = $dir.'/'.$file;
-            is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
+        $currentDir = $this->handleCurrentAndParentPaths($currentDir);
+
+        $isAllowed = $this->isCurrentDirAllowedForAdmin($currentDir);
+
+        if (!$isAllowed) {
+            throw new Exception("Access denied");
         }
-        rmdir($dir);
+
+        return $this->getCurrentDirFiles($currentDir);
     }
 
-    public function getBreadcrumbs($currentDir) {
-        $parts = explode('/', str_replace($this->baseDir, '', $currentDir));
-        $breadcrumbs = [];
-        $currentPath = $this->baseDir;
-
-        foreach ($parts as $part) {
-            if ($part === '') continue;
-            $currentPath .= '/'.$part;
-            $breadcrumbs[] = [
-                'path' => $currentPath,
-                'name' => $part
+    private function getBaseDirs(): array
+    {
+        $allowedDirs = $this->getAllowedDirs();
+        return array_map(function($dir) {
+            return [
+                'name' => basename($dir),
+                'is_dir' => true,
+                'path' => $dir,
+                'fullPath' => realpath(__PUBLIC__ . DIRECTORY_SEPARATOR . $dir)
             ];
+        }, $allowedDirs);
+    }
+
+    private function getCurrentDirFiles(string $currentDir): array
+    {
+        $fullPath = __ROOT__ . DIRECTORY_SEPARATOR .  $currentDir;
+        $items = scandir($fullPath);
+        $files = [];
+        foreach ($items as $item) {
+
+            if(!str_starts_with($item, __ADMIN_FILE_NAME__))
+            {
+
+                $itemPath = $currentDir   . DIRECTORY_SEPARATOR . $item;
+                $itemFullPath = $fullPath . DIRECTORY_SEPARATOR . $item;
+
+                $files[] = [
+                    'name' => $item,
+                    'is_dir' => is_dir($itemFullPath),
+                    'path' => $itemPath,
+                    'fullPath' => realpath($itemFullPath)
+                ];
+            }
+        }
+
+        return $files;
+    }
+
+    private function handleCurrentAndParentPaths(string $currentDir): string
+    {
+        if (str_ends_with($currentDir, '..'))
+        {
+            $offsetToRoot = strlen('\..') + 1;
+            $delimiterPosition = strrpos($currentDir, '\\', -$offsetToRoot);
+            if($delimiterPosition === false){
+                $currentDir = substr($currentDir, 0 ,$offsetToRoot + 1);
+            }else{
+                $currentDir = substr($currentDir, 0,$delimiterPosition);
+            }
+        }
+        else if(str_ends_with($currentDir, '.'))
+        {
+            $currentDir = substr($currentDir, 0, -2);
+        }
+        return $currentDir;
+    }
+
+    private function isCurrentDirAllowedForAdmin(string $currentDir ): bool
+    {
+        $allowedDirs = $this->getAllowedDirs();
+        $isAllowed = false;
+        foreach ($allowedDirs as $allowedDir) {
+            if (str_ends_with($allowedDir, $currentDir)) {
+                $isAllowed = true;
+                break;
+            }
+        }
+        return $isAllowed;
+    }
+
+    public function getBreadcrumbs(?string $currentDir): array {
+        $breadcrumbs = [];
+        if ($currentDir) {
+            $parts = explode('\\', $currentDir);
+            $currentPath = '';
+            foreach ($parts as $part) {
+                $currentPath .= $part . '\\';
+                $breadcrumbs[] = [
+                    'name' => $part,
+                    'path' => rtrim($currentPath, '\\')
+                ];
+            }
         }
         return $breadcrumbs;
     }
 
-    public function isValidPath($path) {
-        return strpos(realpath($path), $this->baseDir) === 0;
+    public function isPathAllowed(string $path): bool {
+        $allowedDirs = $this->getAllowedDirs();
+        $filePath = realpath(dirname($path));
+        return in_array($filePath, $allowedDirs, true);
     }
 
-    public function saveFile($path, $content) {
-        if (strpos(realpath($path), $this->baseDir) === 0) {
-            file_put_contents($path, $content);
-        }
-    }
-
-    function insertData($fileName, $filePath, $fileSize)
+    public function handleAdminPanelAccess(string $templatePath): string
     {
-        $parserDir = new TemplateFacade();
-        $parserFile = new TemplateFacade();
-        $fileName = "";
-        $filePath = "";
-        $fileSize = "";
-        if ($fileSize != ""){
-            $parserFile->render("/app/templates/files.html", "$fileName, $fileSize ");
+        $currentDir = $_GET['dir'] ?? 'public';
+        try {
+            $files = $this->getAllowedFiles($currentDir);
+            $breadcrumbs = $this->getBreadcrumbs($currentDir);
+            $allowedDirs = $this->getAllowedDirs();
+            return $this->templateFacade->render($templatePath, [
+                'currentDir' => $currentDir,
+                'files' => $files,
+                'breadcrumbs' => $breadcrumbs,
+                'allowedDirs' => $allowedDirs
+            ]);
+        } catch (Exception $e) {
+            die("Error: " . $e->getMessage());
         }
-        else {
-            $parserDir->render("/app/templates/packages.html", "$fileName");
+    }
+
+    /**
+     * Проверяет, является ли файл изображением на основе расширения.
+     *
+     * @param string $path Путь к файлу.
+     * @return bool Возвращает true, если файл имеет расширение, соответствующее изображению.
+     */
+    public function isImage(string $path): bool
+    {
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return in_array($ext, $allowedExtensions, true);
+    }
+
+
+    public function normalizePath(string $path, string $toDir): string
+    {
+        $normalizedPath = str_replace('\\', '\\', $path);
+        $pos = strpos($normalizedPath, $toDir);
+
+        if ($pos !== false) {
+            $relativePath = substr($normalizedPath, $pos);
+        } else {
+            $relativePath = '';
         }
+        return $relativePath;
     }
 }

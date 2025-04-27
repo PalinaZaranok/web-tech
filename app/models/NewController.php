@@ -7,15 +7,12 @@ use utils\TemplateFacade;
 
 class NewController
 {
-    public function createHtmlPage()
+    private NewService $newService;
+    public function __construct(NewService $newService){
+        $this->newService = $newService;
+}
+    public function handleNewPanel(): string
     {
-        $templateFacade = new TemplateFacade();
-        $data = ['Новинки', 'Новинка недели', 'с 18 января', 'd9MyW72ELq0', 'Аватар: путь воды'];
-        $templateFacade->renderTemplate('./view/htmlPage.html', $data);
-
-    }
-    public function connectToService()
-    {
-        $newService = new NewService();
+        return $this->newService->handleNewPage();
     }
 }

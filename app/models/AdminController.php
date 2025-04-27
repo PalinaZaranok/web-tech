@@ -1,74 +1,156 @@
 <?php
+declare(strict_types=1);
+namespace models;
 
-
-namespace app\models;
+use Exception;
 
 use services\AdminService;
-require_once '/var/www/Project/WebTech/app/services/AdminService.php';
 
+
+/**
+ * @property $templateFacade
+ */
 class AdminController
 {
-    private $server;
+    private AdminService $adminService;
 
-    public function __construct() {
-        $this->server = new AdminService();
-    }
-
-    public function handleRequest()
+    public function __construct(AdminService $adminService)
     {
-        $this->checkUser();
-        $this->renderView();
-        $this->processPost();
-        $this->processDownload();
+        $this->adminService = $adminService;
     }
 
-    private function checkUser() {
-        if (!$this->server->authentication($_SERVER['PHP_AUTH_USER'] ?? '', $_SERVER['PHP_AUTH_PW'] ?? '')) {
-            header('WWW-Authenticate: Basic realm="File Manager"');
-            header('HTTP/1.0 401 Unauthorized');
-            exit;
-        }
+    private function isAdminAuthorized(): bool
+    {
+        return isset($_SESSION['isAuthorized']) && $_SESSION['isAuthorized'];
     }
 
-    private function processPost() {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
-
-        if (isset($_POST['create_folder'])) {
-            $this->server->createFolder(
-                $this->server->getCurrentDir($_GET['dir'] ?? ''),
-                $_POST['folder_name']
-            );
-        }
-
-        if (isset($_POST['delete'])) {
-            $this->server->deleteItem($_POST['delete']);
-        }
-
-        if (isset($_FILES['upload_file'])) {
-            $target = $this->server->getCurrentDir($_GET['dir'] ?? '') . '/' . basename($_FILES['upload_file']['name']);
-            if ($this->server->isValidPath($target)) {
-                move_uploaded_file($_FILES['upload_file']['tmp_name'], $target);
-            }
-        }
-
-        if (isset($_POST['save_file'])) {
-            $this->server->saveFile($_POST['file_path'], $_POST['content']);
+    public function handleLogin(): void
+    {
+        if($this->isAdminAuthorized())
+        {
+            echo $this->renderAdminPanel();
         }
     }
 
-    private function processDownload() {
-        if (isset($_GET['download']) && $this->server->isValidPath($_GET['download'])) {
+    public function checkPassword(): void
+    {
+        $username = $_GET['username'] ?? '';
+        $password = $_GET['password'] ?? '';
+
+        try {
+            $isValid = $this->adminService->validateCredentials($username, $password);
+        } catch (Exception $e) {
+            $errorMessage = $e->getMessage();
+            $isValid = false;
+            echo $errorMessage;
+        }
+
+        if ($isValid) {
+            $_SESSION['isAuthorized'] = true;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode(['valid' => $isValid]);
+    }
+
+    public function handleAdminPanel(): string
+    {
+        return $this->renderAdminPanel();
+    }
+
+
+    private function renderAdminPanel(): string
+    {
+        return $this->adminService->handleAdminPanelAccess(__ADMIN__ . '\indexAdmin.html');
+    }
+
+    public function downloadFile(): void
+    {
+        $path = $_GET['path'] ?? '';
+        if ($this->adminService->isPathAllowed($path)) {
             header('Content-Type: application/octet-stream');
-            header('Content-Disposition: attachment; filename="'.basename($_GET['download']).'"');
-            readfile($_GET['download']);
+            header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+            readfile($path);
             exit;
+        }
+        http_response_code(403);
+    }
+
+    public function getFileContent(): void
+    {
+        $path = $_GET['path'] ?? '';
+
+        if (!$this->adminService->isPathAllowed($path)) {
+            http_response_code(403);
+            $this->jsonError('Доступ запрещён.');
+        }
+
+        if (!file_exists($path) || !is_readable($path)) {
+            http_response_code(404);
+            $this->jsonError('Файл не найден или недоступен для чтения.');
+        }
+        $isImage = $this->adminService->isImage($path);
+
+        $content = file_get_contents($path);
+
+        if ($content === false) {
+            http_response_code(500);
+            $this->jsonError('Не удалось прочитать файл.');
+        }
+
+        $encodedContent = $isImage ? base64_encode($content) : $content;
+
+        $dirCut = '\public';
+        $relativePath = $this->adminService->normalizePath($path,$dirCut);
+
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'success' => true,
+            'content' => $encodedContent,
+            'mime'    => $isImage ? 'image' : 'text',
+            'isImage' => $isImage,
+            'src' => $relativePath
+        ]);
+        exit;
+    }
+
+    /**
+     * Унифицированный JSON-ответ об ошибке.
+     */
+    private function jsonError(string $message): void
+    {
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'success' => false,
+            'message' => $message
+        ]);
+        exit;
+    }
+
+    public function uploadFile(): void
+    {
+        $targetDir = $_POST['targetDir'] ?? '';
+        $uploadPath = $targetDir . '\\' . basename($_FILES['file']['name']);
+
+        if ($this->adminService->isPathAllowed($uploadPath)) {
+            move_uploaded_file($_FILES['file']['tmp_name'], $uploadPath);
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false]);
         }
     }
 
-    private function renderView() {
-        $currentDir = $this->server->getCurrentDir($_GET['dir'] ?? '');
-        $files = $this->server->getFiles($currentDir);
-        $breadcrumbs = $this->server->getBreadcrumbs($currentDir);
-       // require 'indexAdmin.html';
+    public function deleteFile(): void
+    {
+        $deletePath = $_GET['path'] ?? '';
+        if($this->adminService->isPathAllowed($deletePath)) {
+            $result = unlink($deletePath);
+            $message = 'Error delete file: ' . $deletePath;
+            echo json_encode(['success' => $result, 'message' => $message]);
+        }
+        else
+        {
+            echo json_encode(['success' => false,'message' => 'Access denied.']);
+        }
     }
 }
