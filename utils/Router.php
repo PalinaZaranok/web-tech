@@ -2,12 +2,12 @@
 declare(strict_types=1);
 namespace utils;
 
-use models\AdminController;
-use models\GenresController;
-use models\MainController;
+use controllers\AdminController;
+use controllers\GenresController;
+use controllers\MainController;
 use Exception;
-use models\NewController;
-use models\PopularController;
+use controllers\NewController;
+use controllers\PopularController;
 
 class Router
 {

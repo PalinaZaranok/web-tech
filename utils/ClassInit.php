@@ -2,26 +2,32 @@
 
 namespace utils;
 
-use models\AdminController;
-use models\MainController;
-use models\NewController;
-use models\PopularController;
-use repository\MovieBase;
+use controllers\AdminController;
+use controllers\MainController;
+use controllers\NewController;
+use controllers\PopularController;
+use repository\EntityManager;
 use services\AdminService;
 use services\MainService;
 use services\NewService;
 use services\PopularService;
+use repository\MovieRepository;
+use repository\GenreRepository;
+use repository\UserRepository;
 
+require_once __REPOSITORY__ . '\EntityManager.php';
+require_once __REPOSITORY__ . '\UserRepository.php';
+require_once __REPOSITORY__ . '\MovieRepository.php';
+require_once __REPOSITORY__ . '\GenreRepository.php';
 require_once __SERVICES__ . '\AdminService.php';
 require_once __SERVICES__ . '\MainService.php';
-require_once __MODELS__ . '\MainController.php';
-require_once __MODELS__ . '\AdminController.php';
+require_once __CONTROLLERS__ . '\MainController.php';
+require_once __CONTROLLERS__ . '\AdminController.php';
 require_once __UTILS__ . '\TemplateFacade.php';
-require_once __MODELS__ . '\NewController.php';
+require_once __CONTROLLERS__ . '\NewController.php';
 require_once __SERVICES__ . '\NewService.php';
-require_once __REPOSITORY__ . '\MovieBase.php';
 require_once __SERVICES__ . '\PopularService.php';
-require_once __MODELS__ . '\PopularController.php';
+require_once __CONTROLLERS__ . '\PopularController.php';
 
 class ClassInit
 {
@@ -34,16 +40,20 @@ class ClassInit
     private static array $definitions = [
         AdminController::class => [AdminController::class, [AdminService::class]],
         MainController::class  => [MainController::class, [MainService::class]],
-        MainService::class     => [MainService::class, [TemplateFacade::class]],
+        MainService::class     => [MainService::class, [TemplateFacade::class, MovieRepository::class,
+            UserRepository::class, GenreRepository::class]],
+        MovieRepository::class => [MovieRepository::class, []],
+        UserRepository::class  => [UserRepository::class, []],
+        GenreRepository::class => [GenreRepository::class, []],
+        EntityManager::class   => [EntityManager::class, []],
         AdminService::class    => [AdminService::class, [TemplateFacade::class]],
         TemplateFacade::class  => [TemplateFacade::class, []],
         Router::class          => [Router::class, [ClassInit::class]],
         ClassInit::class       => [ClassInit::class, []],
         NewController::class   => [NewController::class, [NewService::class]],
-        NewService::class      => [NewService::class, [TemplateFacade::class, MovieBase::class]],
-        MovieBase::class       => [MovieBase::class, []],
+        NewService::class      => [NewService::class, [TemplateFacade::class, MovieRepository::class]],
         PopularController::class => [PopularController::class, [PopularService::class]],
-        PopularService::class  => [PopularService::class, [TemplateFacade::class, MovieBase::class]],
+        PopularService::class  => [PopularService::class, [TemplateFacade::class, MovieRepository::class]],
     ];
 
     /** @var array<string, object> */

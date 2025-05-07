@@ -2,21 +2,25 @@
 
 namespace services;
 
-use repository\MovieBase;
+use repository\MovieRepository;
 use utils\TemplateFacade;
 
 class PopularService
 {
     private TemplateFacade $templateFacade;
-    private MovieBase $movieBase;
-    public function __construct(TemplateFacade $templateFacade, MovieBase $movieBase)
+    private MovieRepository $movieRepository;
+    public function __construct(TemplateFacade $templateFacade, MovieRepository $movieRepository)
     {
         $this->templateFacade = $templateFacade;
-        $this->movieBase = $movieBase;
+        $this->movieRepository = $movieRepository;
     }
+
+    /**
+     * @throws \Exception
+     */
     public function handlePopularPage(): string
     {
-        $movies = $this->movieBase->getAll();
+        $movies = $this->movieRepository->getAll();
         return $this->templateFacade->render(__TEMPLATES__ . '\popular.html',
         [
             'movies' => $movies,

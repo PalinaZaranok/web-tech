@@ -1,12 +1,12 @@
 <?php
 
-namespace models;
+namespace controllers;
 
 use services\PopularService;
 
 class PopularController
 {
-    private POpularService $popularService;
+    private PopularService $popularService;
     public function __construct(PopularService $popularService)
     {
         $this->popularService = $popularService;

@@ -1,6 +1,6 @@
 <?php
 
-namespace models;
+namespace controllers;
 
 use services\MainService;
 

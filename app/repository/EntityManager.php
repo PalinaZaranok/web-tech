@@ -4,52 +4,42 @@ namespace repository;
 
 use mysqli;
 
-class EntityManager
+abstract class EntityManager
 {
-    private $configPath;
-    private $connection;
+    protected mysqli $connection;
 
-    private function __construct(string $configPath)
+    public function __construct()
     {
-        $this->configPath = $configPath;
-        $this->sqlInit();
+        $configPath = __ROOT__ .'\config.json';
+        if (file_exists($configPath)) {
+            $this->sqlInit(__ROOT__ .'\config.json');
+        }
     }
 
-    private function sqlInit()
+    private function sqlInit(string $configPath): void
     {
-        $config = json_decode(file_get_contents($this->configPath), true);
+        $config = json_decode(file_get_contents($configPath), true);
         if ($config === null) {
             die("Ошибка декодирования файла конфигурации.");
         }
 
-        $host = $config['DB_HOST'];
-        $user = $config['DB_USER'];
-        $password = $config['DB_PASS'];
-        $dbname = $config['DB_NAME'];
+        $host = $config['host'];
+        $user = $config['username'];
+        $password = $config['password'];
+        $dbname = $config['database'];
 
         $this->connection = new mysqli($host, $user, $password, $dbname);
     }
 
-    private function closeConnection()
+    public function closeConnection(): void
     {
         $this->connection->close();
     }
 
-    protected function takeUserData()
-    {
-        $content = file_get_contents('./.env');
-
-        $lines = explode("\n", $content);
-        $config = [];
-
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if (!empty($line)) {
-                list($key, $value) = explode('=', $line);
-                $config[trim($key)] = trim($value);
-            }
-        }
-        return $config;
-    }
+    public abstract function getById(int $id): object | null;
+    public abstract function create(array $data): bool;
+    public abstract function delete(int $id): bool;
+    public abstract function update(array $data): bool;
+    public abstract function getAll(): array;
 
 }

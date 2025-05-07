@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace models;
+namespace controllers;
 
 use Exception;
 
