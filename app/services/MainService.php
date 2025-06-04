@@ -33,9 +33,7 @@ class MainService
     {
         try {
             $movies = $this->movieRepository->getAll();
-            $result = $this->templateFacade->render(__VIEW__ .'\index.html', [
-                'movies' => $movies,
-            ]);
+            $result = $this->templateFacade->render(__VIEW__ .'\index.html', ['movies' => $movies]);
         } catch (Exception $e) {
             die("Ошибка рендеринга шаблона: " . $e->getMessage());
         }

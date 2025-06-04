@@ -22,8 +22,6 @@ class PopularService
     {
         $movies = $this->movieRepository->getAll();
         return $this->templateFacade->render(__TEMPLATES__ . '\popular.html',
-        [
-            'movies' => $movies,
-        ]);
+        ['movies' => $movies]);
     }
 }

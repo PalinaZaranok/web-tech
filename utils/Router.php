@@ -3,8 +3,9 @@ declare(strict_types=1);
 namespace utils;
 
 use controllers\AdminController;
-use controllers\GenresController;
+use controllers\AutoController;
 use controllers\MainController;
+use controllers\RegistrationController;
 use Exception;
 use controllers\NewController;
 use controllers\PopularController;
@@ -28,9 +29,14 @@ class Router
                 '/'               => [$modelsInitializer->get(MainController::class), 'handleMainPage'],
                 '/new'            => [$modelsInitializer->get(NewController::class), 'handleNewPanel'],
                 '/popular'        => [$modelsInitializer->get(PopularController::class), 'handlePopularPage'],
+                '/authorization'  => [$modelsInitializer->get(AutoController::class), 'handleAutoPage'],
+                '/registration'   => [$modelsInitializer->get(RegistrationController::class), 'handleRegistrationPage'],
             ],
             'POST' => [
                 '/uploadFile'     => [$modelsInitializer->get(AdminController::class), 'uploadFile'],
+                '/authorization'  => [$modelsInitializer->get(AutoController::class), 'authorization'],
+                '/registration'   => [$modelsInitializer->get(RegistrationController::class), 'registration'],
+                '/logout'         => [$modelsInitializer->get(AutoController::class), 'logout'],
             ],
             'PUT' => [
                 '/deleteFile'     => [$modelsInitializer->get(AdminController::class), 'deleteFile'],

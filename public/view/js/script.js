@@ -44,10 +44,15 @@ adminBtn.addEventListener("click",() => {
 
 const newBtn = document.getElementById("new-btn");
 const popBtn = document.getElementById("pop-btn");
+const autoBtn = document.getElementById("auto-btn");
 newBtn.addEventListener("click", () =>{
     window.location.href = '/new';
 });
 
 popBtn.addEventListener("click", () =>{
     window.location.href = '/popular';
+});
+
+autoBtn.addEventListener("click", () =>{
+    window.location.href = '/authorization';
 });

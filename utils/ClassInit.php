@@ -6,14 +6,18 @@ use controllers\AdminController;
 use controllers\MainController;
 use controllers\NewController;
 use controllers\PopularController;
+use controllers\RegistrationController;
 use repository\EntityManager;
 use services\AdminService;
 use services\MainService;
 use services\NewService;
 use services\PopularService;
 use repository\MovieRepository;
-use repository\GenreRepository;
 use repository\UserRepository;
+use controllers\AutoController;
+use services\AutoService;
+use repository\GenreRepository;
+use services\RegistrationService;
 
 require_once __REPOSITORY__ . '\EntityManager.php';
 require_once __REPOSITORY__ . '\UserRepository.php';
@@ -24,10 +28,15 @@ require_once __SERVICES__ . '\MainService.php';
 require_once __CONTROLLERS__ . '\MainController.php';
 require_once __CONTROLLERS__ . '\AdminController.php';
 require_once __UTILS__ . '\TemplateFacade.php';
+require_once __REPOSITORY__ . '\GenreRepository.php';
 require_once __CONTROLLERS__ . '\NewController.php';
 require_once __SERVICES__ . '\NewService.php';
 require_once __SERVICES__ . '\PopularService.php';
 require_once __CONTROLLERS__ . '\PopularController.php';
+require_once __CONTROLLERS__ . '\AutoController.php';
+require_once __SERVICES__ . '\AutoService.php';
+require_once __SERVICES__ . '\RegistrationService.php';
+require_once __CONTROLLERS__ . '\RegistrationController.php';
 
 class ClassInit
 {
@@ -39,12 +48,12 @@ class ClassInit
      */
     private static array $definitions = [
         AdminController::class => [AdminController::class, [AdminService::class]],
-        MainController::class  => [MainController::class, [MainService::class]],
+        MainController::class  => [MainController::class, [MainService::class, AutoService::class]],
         MainService::class     => [MainService::class, [TemplateFacade::class, MovieRepository::class,
             UserRepository::class, GenreRepository::class]],
         MovieRepository::class => [MovieRepository::class, []],
-        UserRepository::class  => [UserRepository::class, []],
         GenreRepository::class => [GenreRepository::class, []],
+        UserRepository::class  => [UserRepository::class, []],
         EntityManager::class   => [EntityManager::class, []],
         AdminService::class    => [AdminService::class, [TemplateFacade::class]],
         TemplateFacade::class  => [TemplateFacade::class, []],
@@ -54,6 +63,10 @@ class ClassInit
         NewService::class      => [NewService::class, [TemplateFacade::class, MovieRepository::class]],
         PopularController::class => [PopularController::class, [PopularService::class]],
         PopularService::class  => [PopularService::class, [TemplateFacade::class, MovieRepository::class]],
+        AutoService::class     => [AutoService::class, [TemplateFacade::class, UserRepository::class]],
+        AutoController::class  => [AutoController::class, [AutoService::class]],
+        RegistrationController::class => [RegistrationController::class, [RegistrationService::class]],
+        RegistrationService::class => [RegistrationService::class, [TemplateFacade::class, UserRepository::class]],
     ];
 
     /** @var array<string, object> */

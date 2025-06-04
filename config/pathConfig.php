@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 defined('__ROOT__') or define('__ROOT__', dirname(__DIR__));
 defined('__ADMIN__') or define('__ADMIN__', __ROOT__ . '\admin');
 defined('__APP__') or define('__APP__', __ROOT__ . '\app');
